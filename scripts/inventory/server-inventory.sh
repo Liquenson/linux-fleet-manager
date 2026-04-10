@@ -8,8 +8,12 @@
 
 set -euo pipefail
 
-readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly SCRIPT_DIR
+
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+readonly PROJECT_ROOT
+
 readonly VERSION="1.0.0"
 
 # Load library
@@ -21,7 +25,9 @@ else
 fi
 
 readonly REPORTS_DIR="${PROJECT_ROOT}/reports"
-readonly TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+
+TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
+readonly TIMESTAMP
 
 OUTPUT_FORMAT="csv"
 OUTPUT_FILE=""

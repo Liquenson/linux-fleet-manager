@@ -28,7 +28,9 @@ write_log() {
     local level="$1"
     shift
     local message="$*"
-    local timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
+    local timestamp
+    
+    timestamp="$(date '+%Y-%m-%d %H:%M:%S')"
     
     if [[ "${ENABLE_FILE_LOG}" == "true" ]]; then
         echo "[${timestamp}] [${level}] ${message}" >> "${LOG_FILE}"
