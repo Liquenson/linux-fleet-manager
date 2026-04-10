@@ -1,0 +1,96 @@
+# Linux Fleet Manager - Server Inventory Configuration
+# Copy this file to servers.ini and customize for your environment
+
+# SYNTAX:
+# [group_name]
+# hostname ansible_host=IP_ADDRESS ansible_user=USERNAME ansible_port=22
+
+# =============================================================================
+# WEB SERVERS
+# =============================================================================
+[web_servers]
+web-prod-01 ansible_host=192.168.1.10 ansible_user=admin ansible_port=22
+web-prod-02 ansible_host=192.168.1.11 ansible_user=admin ansible_port=22
+web-prod-03 ansible_host=192.168.1.12 ansible_user=admin ansible_port=22
+
+[web_servers_staging]
+web-stg-01 ansible_host=192.168.2.10 ansible_user=admin ansible_port=22
+web-stg-02 ansible_host=192.168.2.11 ansible_user=admin ansible_port=22
+
+[web_servers_dev]
+web-dev-01 ansible_host=192.168.3.10 ansible_user=admin ansible_port=22
+
+# =============================================================================
+# APPLICATION SERVERS
+# =============================================================================
+[app_servers]
+app-prod-01 ansible_host=192.168.1.20 ansible_user=admin ansible_port=22
+app-prod-02 ansible_host=192.168.1.21 ansible_user=admin ansible_port=22
+app-prod-03 ansible_host=192.168.1.22 ansible_user=admin ansible_port=22
+
+[app_servers_staging]
+app-stg-01 ansible_host=192.168.2.20 ansible_user=admin ansible_port=22
+
+# =============================================================================
+# DATABASE SERVERS
+# =============================================================================
+[db_servers]
+db-prod-01 ansible_host=192.168.1.30 ansible_user=admin ansible_port=22
+db-prod-02 ansible_host=192.168.1.31 ansible_user=admin ansible_port=22
+
+[db_servers_staging]
+db-stg-01 ansible_host=192.168.2.30 ansible_user=admin ansible_port=22
+
+# =============================================================================
+# CACHE SERVERS
+# =============================================================================
+[cache_servers]
+cache-prod-01 ansible_host=192.168.1.40 ansible_user=admin ansible_port=22
+cache-prod-02 ansible_host=192.168.1.41 ansible_user=admin ansible_port=22
+
+# =============================================================================
+# MONITORING SERVERS
+# =============================================================================
+[monitoring_servers]
+monitor-01 ansible_host=192.168.1.50 ansible_user=admin ansible_port=22
+
+# =============================================================================
+# GROUP DEFINITIONS
+# =============================================================================
+[production:children]
+web_servers
+app_servers
+db_servers
+cache_servers
+
+[staging:children]
+web_servers_staging
+app_servers_staging
+db_servers_staging
+
+[development:children]
+web_servers_dev
+
+[all_servers:children]
+production
+staging
+development
+monitoring_servers
+
+# =============================================================================
+# GROUP VARIABLES (Optional - can be defined here or in separate file)
+# =============================================================================
+[production:vars]
+environment=production
+backup_enabled=true
+monitoring_enabled=true
+
+[staging:vars]
+environment=staging
+backup_enabled=false
+monitoring_enabled=true
+
+[development:vars]
+environment=development
+backup_enabled=false
+monitoring_enabled=false
