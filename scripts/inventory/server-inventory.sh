@@ -56,7 +56,7 @@ parse_args() {
     while [[ $# -gt 0 ]]; do
         case $1 in
             -f|--format)
-                OUTPUT_FORMAT="${2,,}"
+                OUTPUT_FORMAT="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
                 shift 2
                 ;;
             -o|--output)
