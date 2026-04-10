@@ -1,0 +1,139 @@
+name: CI - Code Quality and Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  shellcheck:
+    name: ShellCheck Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run ShellCheck
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './scripts'
+          severity: warning
+      
+      - name: Check lib directory
+        uses: ludeeus/action-shellcheck@master
+        with:
+          scandir: './lib'
+          severity: warning
+
+  test-script:
+    name: Test Inventory Script
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Make scripts executable (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          chmod +x scripts/inventory/server-inventory.sh
+          chmod +x lib/common.sh
+          chmod +x lib/logger.sh
+      
+      - name: Test --help
+        shell: bash
+        run: ./scripts/inventory/server-inventory.sh --help
+      
+      - name: Test --version
+        shell: bash
+        run: ./scripts/inventory/server-inventory.sh --version
+      
+      - name: Test CSV generation
+        shell: bash
+        run: |
+          ./scripts/inventory/server-inventory.sh --format csv
+          ls -la reports/
+          cat reports/server-inventory_*.csv
+      
+      - name: Test JSON generation
+        shell: bash
+        run: |
+          ./scripts/inventory/server-inventory.sh --format json
+          cat reports/server-inventory_*.json
+      
+      - name: Verify CSV output
+        shell: bash
+        run: |
+          if [ ! -f reports/server-inventory_*.csv ]; then
+            echo "ERROR: CSV file not generated"
+            exit 1
+          fi
+          echo "✅ CSV file generated successfully"
+      
+      - name: Verify JSON output
+        shell: bash
+        run: |
+          if [ ! -f reports/server-inventory_*.json ]; then
+            echo "ERROR: JSON file not generated"
+            exit 1
+          fi
+          echo "✅ JSON file generated successfully"
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-reports-${{ matrix.os }}
+          path: reports/
+          retention-days: 7
+
+  lint-markdown:
+    name: Markdown Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Lint Markdown files
+        uses: nosborn/github-action-markdown-cli@v3.3.0
+        with:
+          files: .
+          config_file: .markdownlint.json
+          ignore_files: .sixth/
+        continue-on-error: true
+
+  check-structure:
+    name: Verify Project Structure
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check required files
+        run: |
+          echo "Checking project structure..."
+          
+          # Required files
+          test -f README.md || { echo "❌ README.md missing"; exit 1; }
+          test -f LICENSE || { echo "❌ LICENSE missing"; exit 1; }
+          test -f CHANGELOG.md || { echo "❌ CHANGELOG.md missing"; exit 1; }
+          test -f CONTRIBUTING.md || { echo "❌ CONTRIBUTING.md missing"; exit 1; }
+          
+          # Required directories
+          test -d scripts || { echo "❌ scripts/ missing"; exit 1; }
+          test -d lib || { echo "❌ lib/ missing"; exit 1; }
+          test -d config || { echo "❌ config/ missing"; exit 1; }
+          test -d docs || { echo "❌ docs/ missing"; exit 1; }
+          
+          # Scripts
+          test -f scripts/inventory/server-inventory.sh || { echo "❌ server-inventory.sh missing"; exit 1; }
+          test -f lib/common.sh || { echo "❌ common.sh missing"; exit 1; }
+          
+          echo "✅ All required files and directories present"
