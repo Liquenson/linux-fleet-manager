@@ -1,91 +1,73 @@
-# 🐧 Linux Fleet Manager
+# ��� Linux Fleet Manager
 
-> Enterprise-grade Bash automation toolkit for managing large-scale Linux infrastructure (500+ servers)
+> Enterprise-grade Bash automation toolkit for managing large-scale Linux infrastructure
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Bash Version](https://img.shields.io/badge/bash-%3E%3D4.0-green.svg)](https://www.gnu.org/software/bash/)
+[![CI](https://github.com/Liquenson/linux-fleet-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Liquenson/linux-fleet-manager/actions/workflows/ci.yml)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Liquenson/linux-fleet-manager/graphs/commit-activity)
 
-## 🎯 Overview
+## ��� Overview
 
-Linux Fleet Manager is a comprehensive collection of production-ready Bash scripts designed to automate and streamline the management of large-scale Linux server infrastructures. Built from real-world enterprise experience managing 500+ servers across multiple data centers and cloud environments.
+Linux Fleet Manager is a production-ready Bash automation toolkit designed to streamline the management of large-scale Linux server infrastructures. Built with enterprise best practices, automated testing, and cross-platform compatibility.
 
-### Real-World Scenario
+### What It Does
 
-This toolkit addresses the challenges of managing:
-- **1500+ Linux servers** across multiple data centers
-- **500 web servers** (Nginx/Apache)
-- **400 application servers** (Java/Python/Node.js)
-- **300 database servers** (PostgreSQL/MySQL/MongoDB)
-- **200 cache servers** (Redis/Memcached)
-- **100 monitoring/logging servers** (Prometheus/ELK)
+Automates critical infrastructure management tasks:
+- ��� **Server Inventory Collection** - Automated asset discovery and reporting
+- ��� **Health Monitoring** - Parallel health checks across entire fleet
+- ��� **User Management** - Bulk user provisioning and SSH key distribution
+- ��� **Security & Compliance** - Automated patching and compliance auditing
+- ��� **Backup Verification** - Automated backup integrity checks
+- ��� **Monitoring Integration** - Centralized log collection and metrics
 
-Distributed across:
-- 3 Data Centers (Madrid, Barcelona, Valencia)
-- 5 Environments (Dev, Test, Staging, Production, DR)
-- Multiple OS distributions (Ubuntu 20.04/22.04, CentOS 7/8, RHEL 8/9)
+### Enterprise-Grade Quality
+
+✅ **Multi-Platform Support** - Tested on Ubuntu, macOS, and Windows (Git Bash)  
+✅ **CI/CD Pipeline** - Automated testing with GitHub Actions  
+✅ **Code Quality** - ShellCheck validated, zero warnings  
+✅ **Comprehensive Documentation** - Installation guides, examples, and best practices  
+✅ **Shared Libraries** - DRY principles with reusable components  
 
 ## ✨ Features
 
-### 🔍 Inventory & Auditing
-- Automated server discovery and asset inventory
-- Hardware and software inventory collection
-- Compliance reporting (CSV/JSON export)
-- CMDB integration support
+### ��� Server Inventory
+- **Multi-format export** (CSV/JSON) for integration with CMDB systems
+- **Cross-platform compatible** (Linux, macOS, Windows)
+- **Automated data collection** (hostname, OS, kernel, CPU, date)
+- **Extensible architecture** for adding custom metrics
 
-### 🏥 Health Monitoring
+### ��� Health Monitoring *(Coming Soon)*
 - Parallel health checks across entire fleet
 - Service availability monitoring
-- Resource usage tracking (CPU, RAM, Disk, Network)
-- Automated alerting for critical issues
+- Resource usage tracking
+- Automated alerting
 
-### 🔒 Security & Compliance
-- Automated security patch deployment
-- CVE vulnerability scanning
-- Security compliance auditing (CIS, PCI-DSS)
-- SSH configuration hardening
-
-### 👥 User Management
+### ��� User Management *(Coming Soon)*
 - Bulk user provisioning/deprovisioning
 - SSH key distribution at scale
 - Sudo access management
 - Access audit trails
 
-### 💾 Backup & Recovery
-- Automated backup verification
-- Restore testing
-- Backup integrity checks
-- Cloud storage integration
+### ��� Security & Compliance *(Coming Soon)*
+- Automated security patch deployment
+- CVE vulnerability scanning
+- Security compliance auditing (CIS, PCI-DSS, SOC2)
+- SSH configuration hardening
 
-### 📊 Monitoring & Analytics
-- Centralized log collection
-- Capacity planning and forecasting
-- Performance trending
-- Custom metric collection
-
-### 🔄 Service Orchestration
-- Zero-downtime rolling restarts
-- Load balancer integration
-- Service deployment automation
-- Automatic rollback on failure
-
-## 🚀 Quick Start
+## ��� Quick Start
 
 ### Prerequisites
 
 ```bash
-# Required on control server
-- Bash 4.0+
+# Required
+- Bash 4.0+ (Bash 3.x supported on macOS)
 - SSH client
-- jq (for JSON processing)
-- GNU Parallel (recommended)
+- awk, cut, tr (standard Unix tools)
 
-# Install dependencies (Ubuntu/Debian)
-sudo apt-get update
-sudo apt-get install -y jq parallel openssh-client
-
-# Install dependencies (CentOS/RHEL)
-sudo yum install -y jq parallel openssh-clients
+# Optional (for development)
+- ShellCheck (code linting)
+- jq (JSON processing)
 ```
 
 ### Installation
@@ -95,126 +77,55 @@ sudo yum install -y jq parallel openssh-clients
 git clone https://github.com/Liquenson/linux-fleet-manager.git
 cd linux-fleet-manager
 
-# Make scripts executable
-chmod +x scripts/**/*.sh
+# Make scripts executable (Unix/Linux/macOS)
+chmod +x scripts/inventory/server-inventory.sh
+chmod +x lib/*.sh
 
 # Configure your server inventory
 cp config/servers.ini.example config/servers.ini
-vim config/servers.ini
+vim config/servers.ini  # Add your servers
 ```
 
 ### Basic Usage
 
 ```bash
-# Run server inventory
-./scripts/inventory/server-inventory.sh
+# Display help
+./scripts/inventory/server-inventory.sh --help
 
-# Perform health check on all servers
-./scripts/health-check/mass-health-check.sh
+# Generate CSV inventory
+./scripts/inventory/server-inventory.sh --format csv
 
-# Manage users across fleet
-./scripts/user-management/bulk-user-management.sh --action create --users-file users.txt
+# Generate JSON inventory
+./scripts/inventory/server-inventory.sh --format json
+
+# Custom output filename
+./scripts/inventory/server-inventory.sh --format csv --output my-servers.csv
+
+# View generated report
+cat reports/server-inventory_*.csv
 ```
 
-## 📚 Use Cases
+### Example Output
 
-### Enterprise Operations
-- **IT Asset Management:** Automated inventory for CMDB/ITSM systems
-- **Compliance Auditing:** SOC2, ISO 27001, PCI-DSS compliance checks
-- **Patch Management:** Security patch deployment across entire fleet
-- **Incident Response:** Rapid information gathering during outages
+**CSV Format:**
+```csv
+Hostname,IP Address,OS Name,Kernel,CPU Count,Last Update
+web-server-01,127.0.0.1,Linux,5.15.0-91-generic,8,2026-04-10
+app-server-02,127.0.0.1,Darwin,23.3.0,4,2026-04-10
+```
 
-### Security Operations
-- **Vulnerability Management:** CVE scanning and remediation tracking
-- **Access Control:** Centralized user and SSH key management
-- **Audit Trails:** Complete logging of all administrative actions
-- **Compliance Reporting:** Automated generation of compliance reports
+**JSON Format:**
+```json
+[
+  {
+    "hostname": "web-server-01",
+    "ip_address": "127.0.0.1",
+    "os_name": "Linux",
+    "kernel": "5.15.0-91-generic",
+    "cpu_count": "8",
+    "last_update": "2026-04-10"
+  }
+]
+```
 
-### DevOps Teams
-- **Configuration Management:** Ensure consistency across all servers
-- **Service Orchestration:** Coordinate deployments and updates
-- **Monitoring Integration:** Feed data to Prometheus, ELK, Grafana
-- **Automation:** Reduce manual tasks and human error
-
-## 🏗️ Project Structure
-
-linux-fleet-manager/
-├── README.md
-├── LICENSE
-├── .gitignore
-├── docs/
-│   ├── installation.md
-│   ├── architecture.md
-│   ├── use-cases.md
-│   └── troubleshooting.md
-├── scripts/
-│   ├── inventory/
-│   │   └── server-inventory.sh
-│   ├── health-check/
-│   │   └── mass-health-check.sh
-│   ├── patch-management/
-│   │   └── security-patch-deployment.sh
-│   ├── user-management/
-│   │   └── bulk-user-management.sh
-│   ├── backup/
-│   │   └── backup-verification.sh
-│   ├── monitoring/
-│   │   └── centralized-log-collector.sh
-│   ├── orchestration/
-│   │   └── rolling-restart.sh
-│   └── compliance/
-│       └── security-compliance-audit.sh
-├── config/
-│   ├── servers.ini.example
-│   └── variables.env.example
-├── tests/
-│   └── test-inventory.sh
-└── examples/
-└── basic-usage.md
-
-## 🛠️ Technology Stack
-
-- **Shell:** Bash 4.0+
-- **Transport:** SSH / OpenSSH
-- **Parallelization:** GNU Parallel
-- **Data Processing:** jq, awk, sed
-- **Monitoring:** Integration with Prometheus, ELK, Grafana
-- **Cloud:** AWS CLI, Azure CLI (optional)
-
-## 📖 Documentation
-
-- [Installation Guide](docs/installation.md) - Complete installation instructions
-- [Architecture Overview](docs/architecture.md) - System design and components
-- [Use Cases](docs/use-cases.md) - Real-world scenarios and examples
-- [Troubleshooting](docs/troubleshooting.md) - Common issues and solutions
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👨‍💻 Author
-
-**Liquenson Ruben Alexis**  
-DevOps Engineer || Cloud & Linux Administrator || AWS || Kubernetes · 
-Gran Canaria, España
-
-- 📧 Email: liquenson.cloud@gmail.com
-- 💼 LinkedIn: [linkedin.com/in/liquenson-ruben-490961269](https://www.linkedin.com/in/liquenson-ruben-490961269/)
-- 🐙 GitHub: [@Liquenson](https://github.com/Liquenson)
-- 📱 Phone: +34 608 541 718
-
-## 🙏 Acknowledgments
-
-Built with experience from managing production Linux infrastructure at enterprise scale in multi-datacenter environments. Inspired by real-world challenges in managing 500+ servers across distributed systems.
-
----
-
-⭐ **If this project helps you, please consider giving it a star!**
-
-## 🔗 Related Projects
-
-- [aws-terraform-devops-lab](https://github.com/Liquenson/aws-terraform-devops-lab) - AWS Infrastructure with Terraform
+## ���️ Project Structure
