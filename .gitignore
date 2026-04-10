@@ -1,0 +1,71 @@
+# Linux Fleet Manager - .gitignore
+
+# Sensitive configuration files
+config/servers.ini
+config/variables.env
+config/*.key
+config/*.pem
+*.secret
+
+# SSH keys
+*.ppk
+*_rsa
+*_rsa.pub
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Reports and outputs
+reports/
+output/
+*.csv
+*.json
+*.html
+*.pdf
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor-specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# Python (if using helper scripts)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+
+# Archives
+*.tar
+*.tar.gz
+*.zip
+*.rar
+
+# Test artifacts
+test-results/
+coverage/
