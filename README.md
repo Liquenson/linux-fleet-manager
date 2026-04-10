@@ -6,8 +6,6 @@
 [![Bash Version](https://img.shields.io/badge/bash-%3E%3D4.0-green.svg)](https://www.gnu.org/software/bash/)
 [![CI](https://github.com/Liquenson/linux-fleet-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/Liquenson/linux-fleet-manager/actions/workflows/ci.yml)
 
-## 🎯 ¿Qué es esto?
-
 **Linux Fleet Manager** automatiza la gestión de cientos de servidores Linux con scripts Bash listos para producción.
 
 En lugar de conectarte manualmente a cada servidor, este toolkit recopila información de toda tu infraestructura automáticamente.
@@ -82,3 +80,97 @@ db-server-03,192.168.1.51,Linux,5.15.0-91-generic,32,2026-04-10
 ```
 
 ## 🏗️ Estructura del Proyecto
+linux-fleet-manager/
+├── scripts/
+│   └── inventory/
+│       └── server-inventory.sh    # ✅ Script principal
+├── lib/
+│   ├── common.sh                  # Funciones reutilizables
+│   └── logger.sh                  # Sistema de logging
+├── config/
+│   └── servers.ini.example        # Plantilla de configuración
+├── .github/workflows/
+│   └── ci.yml                     # Pipeline CI/CD
+└── README.md                      # Este archivo
+
+## 🔧 Tecnologías
+
+- **Bash 4.0+** - Scripts shell profesionales
+- **GitHub Actions** - CI/CD automatizado
+- **ShellCheck** - Validación de código
+- **SSH** - Acceso seguro a servidores
+- **CSV/JSON** - Formatos de exportación estándar
+
+## 📖 Uso Detallado
+
+```bash
+# Ver opciones disponibles
+./scripts/inventory/server-inventory.sh --help
+
+# Generar CSV
+./scripts/inventory/server-inventory.sh --format csv
+
+# Generar JSON
+./scripts/inventory/server-inventory.sh --format json
+
+# Archivo personalizado
+./scripts/inventory/server-inventory.sh --output mis-servidores.csv
+```
+
+## 🚀 CI/CD Pipeline
+
+Cada commit pasa automáticamente por:
+
+✅ **Validación ShellCheck** - Análisis estático de código  
+✅ **Tests en Ubuntu** - Verificación funcional  
+✅ **Tests en macOS** - Compatibilidad Bash 3.x  
+✅ **Tests en Windows** - Git Bash compatibility  
+✅ **Verificación de estructura** - Integridad del proyecto  
+
+[Ver estado del CI/CD →](https://github.com/Liquenson/linux-fleet-manager/actions)
+
+## 📈 Roadmap
+
+### v1.0.0 (Actual)
+- ✅ Inventario de servidores (CSV/JSON)
+- ✅ CI/CD con GitHub Actions
+- ✅ Soporte multiplataforma
+- ✅ Documentación completa
+
+### v1.1.0 (Próximo)
+- 🚧 Health checks automáticos
+- 🚧 Gestión de usuarios en masa
+- 🚧 Despliegue de parches
+- 🚧 Reportes HTML/PDF
+
+### v2.0.0 (Futuro)
+- 🔮 Dashboard web en tiempo real
+- 🔮 Integración con Kubernetes
+- 🔮 APIs de cloud (AWS/Azure/GCP)
+
+## 👨‍💻 Autor
+
+**Liquenson Ruben Alexis**  
+*DevOps Engineer | AWS | Kubernetes | Linux*
+
+- 📧 liquenson.cloud@gmail.com
+- 💼 [LinkedIn](https://www.linkedin.com/in/liquenson-ruben-490961269/)
+- 🐙 [GitHub](https://github.com/Liquenson)
+- 📍 Las Palmas de Gran Canaria, España
+
+## 📄 Licencia
+
+MIT License - Ver [LICENSE](LICENSE) para más detalles.
+
+---
+
+## 🔗 Proyectos Relacionados
+
+- [aws-terraform-devops-lab](https://github.com/Liquenson/aws-terraform-devops-lab) - Infraestructura AWS con Terraform
+
+---
+
+⭐ **¿Te resulta útil? ¡Dale una estrella al proyecto!**
+
+**¿Preguntas?** Abre un [issue](https://github.com/Liquenson/linux-fleet-manager/issues) o contáctame por [email](mailto:liquenson.cloud@gmail.com).
+
