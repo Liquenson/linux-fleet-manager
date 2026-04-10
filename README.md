@@ -199,7 +199,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 👨‍💻 Author
 
 **Liquenson Ruben Alexis**  
-DevOps Engineer with 3+ years of experience in cloud infrastructure and automation
+DevOps Engineer || Cloud & Linux Administrator || AWS || Kubernetes · 
+Gran Canaria, España
 
 - 📧 Email: liquenson.cloud@gmail.com
 - 💼 LinkedIn: [linkedin.com/in/liquenson-ruben-490961269](https://www.linkedin.com/in/liquenson-ruben-490961269/)
