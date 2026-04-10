@@ -1,0 +1,7 @@
+# ShellCheck configuration
+# https://www.shellcheck.net/
+
+# Disable specific warnings
+disable=SC2034  # Variable appears unused
+disable=SC1090  # Can't follow non-constant source
+disable=SC1091  # Not following sourced file
