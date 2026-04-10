@@ -83,25 +83,32 @@ main() {
 ╚══════════════════════════════════════════════════════════════════╝
 
 EOF
-    
+
     parse_args "$@"
-    
+
     log_info "Starting server inventory collection..."
-    
+
     ensure_dir "${REPORTS_DIR}"
-    
+
     [[ -z "${OUTPUT_FILE}" ]] && OUTPUT_FILE="${REPORTS_DIR}/server-inventory_${TIMESTAMP}.${OUTPUT_FORMAT}"
-    
+
     log_info "Output file: ${OUTPUT_FILE}"
-    
+
     # Collect data
-    local hostname=$(hostname)
-    local ip="127.0.0.1"
-    local os_name=$(uname -s)
-    local kernel=$(uname -r)
-    local cpu_count="${NUMBER_OF_PROCESSORS:-N/A}"
-    local date_now=$(date +%Y-%m-%d)
+    local hostname
+    local ip
+    local os_name
+    local kernel
+    local cpu_count
+    local date_now
     
+    hostname=$(hostname)
+    ip="127.0.0.1"
+    os_name=$(uname -s)
+    kernel=$(uname -r)
+    cpu_count="${NUMBER_OF_PROCESSORS:-N/A}"
+    date_now=$(date +%Y-%m-%d)
+
     # Write output
     if [[ "${OUTPUT_FORMAT}" == "csv" ]]; then
         {
@@ -122,7 +129,7 @@ EOF
 ]
 EOF
     fi
-    
+
     log_success "Inventory collected from localhost"
     log_success "Report saved to: ${OUTPUT_FILE}"
     log_success "✅ Script completed successfully!"
