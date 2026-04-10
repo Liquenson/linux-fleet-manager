@@ -74,10 +74,14 @@ check_dependencies() {
 }
 
 # Get script directory
+# Usage: script_dir=$(get_script_dir)
 get_script_dir() {
-    local source="${BASH_SOURCE[1]}"
+    local source
+    local dir
+    
+    source="${BASH_SOURCE[1]}"
     while [[ -h "${source}" ]]; do
-        local dir="$(cd -P "$(dirname "${source}")" && pwd)"
+        dir="$(cd -P "$(dirname "${source}")" && pwd)"
         source="$(readlink "${source}")"
         [[ ${source} != /* ]] && source="${dir}/${source}"
     done
@@ -85,8 +89,11 @@ get_script_dir() {
 }
 
 # Get project root
+# Usage: project_root=$(get_project_root)
 get_project_root() {
-    local dir="$(get_script_dir)"
+    local dir
+    
+    dir="$(get_script_dir)"
     while [[ "${dir}" != "/" ]]; do
         if [[ -f "${dir}/.git/config" ]] || [[ -f "${dir}/README.md" ]]; then
             echo "${dir}"
@@ -175,3 +182,5 @@ log_debug() {
 set -euo pipefail
 
 export -f die command_exists log_info log_success log_warning log_error
+
+log_debug "Loaded common.sh library (version ${LFM_LIB_VERSION})"
