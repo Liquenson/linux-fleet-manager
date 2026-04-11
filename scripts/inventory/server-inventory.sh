@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ################################################################################
 # Script: server-inventory.sh
-# Description: Collect comprehensive inventory from all Linux servers
+# Description: Collect comprehensive inventory from Linux servers
 # Author: Liquenson Ruben Alexis
-# Version: 1.0.0
+# Version: 2.0.0
 ################################################################################
 
 set -euo pipefail
@@ -14,9 +14,9 @@ readonly SCRIPT_DIR
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 readonly PROJECT_ROOT
 
-readonly VERSION="1.0.0"
+readonly VERSION="2.0.0"
 
-# Load library
+# Load libraries
 if [[ -f "${PROJECT_ROOT}/lib/common.sh" ]]; then
     source "${PROJECT_ROOT}/lib/common.sh"
 else
@@ -24,105 +24,58 @@ else
     exit 1
 fi
 
+if [[ -f "${PROJECT_ROOT}/lib/logger.sh" ]]; then
+    source "${PROJECT_ROOT}/lib/logger.sh"
+fi
+
+# Inputs from CLI
+ENV="${1:-default}"
+OUTPUT_FORMAT="${2:-csv}"
+
 readonly REPORTS_DIR="${PROJECT_ROOT}/reports"
 
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 readonly TIMESTAMP
 
-OUTPUT_FORMAT="csv"
-OUTPUT_FILE=""
+OUTPUT_FILE="${REPORTS_DIR}/server-inventory_${TIMESTAMP}.${OUTPUT_FORMAT}"
 
-usage() {
-    cat << 'EOF'
-Usage: server-inventory.sh [OPTIONS]
-
-OPTIONS:
-    -f, --format FORMAT    Output format: csv or json (default: csv)
-    -o, --output FILE      Output filename
-    -h, --help             Display help
-    --version              Display version
-
-EXAMPLES:
-    ./server-inventory.sh
-    ./server-inventory.sh --format json
-EOF
-}
-
-print_version() {
-    echo "Linux Fleet Manager - Server Inventory v${VERSION}"
-}
-
-parse_args() {
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -f|--format)
-                OUTPUT_FORMAT="$(echo "$2" | tr '[:upper:]' '[:lower:]')"
-                shift 2
-                ;;
-            -o|--output)
-                OUTPUT_FILE="$2"
-                shift 2
-                ;;
-            -h|--help)
-                usage
-                exit 0
-                ;;
-            --version)
-                print_version
-                exit 0
-                ;;
-            *)
-                echo "Unknown option: $1"
-                exit 1
-                ;;
-        esac
-    done
-}
-
-main() {
+print_banner() {
     cat << 'EOF'
 ╔══════════════════════════════════════════════════════════════════╗
-║           ��� LINUX FLEET MANAGER - SERVER INVENTORY             ║
+║           ��� LINUX FLEET MANAGER - SERVER INVENTORY              ║
 ║                                                                  ║
 ║  Automated server discovery and inventory collection            ║
-║  Author: Liquenson Ruben Alexis                                 ║
 ╚══════════════════════════════════════════════════════════════════╝
-
 EOF
+}
 
-    parse_args "$@"
+collect_data() {
+    local hostname ip os_name kernel cpu_count date_now
 
-    log_info "Starting server inventory collection..."
-
-    ensure_dir "${REPORTS_DIR}"
-
-    [[ -z "${OUTPUT_FILE}" ]] && OUTPUT_FILE="${REPORTS_DIR}/server-inventory_${TIMESTAMP}.${OUTPUT_FORMAT}"
-
-    log_info "Output file: ${OUTPUT_FILE}"
-
-    # Collect data
-    local hostname
-    local ip
-    local os_name
-    local kernel
-    local cpu_count
-    local date_now
-    
     hostname=$(hostname)
     ip="127.0.0.1"
     os_name=$(uname -s)
     kernel=$(uname -r)
-    cpu_count="${NUMBER_OF_PROCESSORS:-N/A}"
+    cpu_count=$(nproc 2>/dev/null || echo "${NUMBER_OF_PROCESSORS:-N/A}")
     date_now=$(date +%Y-%m-%d)
 
-    # Write output
-    if [[ "${OUTPUT_FORMAT}" == "csv" ]]; then
-        {
-            echo "Hostname,IP Address,OS Name,Kernel,CPU Count,Last Update"
-            echo "${hostname},${ip},${os_name},${kernel},${cpu_count},${date_now}"
-        } > "${OUTPUT_FILE}"
-    else
-        cat > "${OUTPUT_FILE}" << EOF
+    echo "$hostname|$ip|$os_name|$kernel|$cpu_count|$date_now"
+}
+
+write_csv() {
+    local data="$1"
+
+    {
+        echo "Hostname,IP Address,OS Name,Kernel,CPU Count,Last Update"
+        echo "${data//|/,}"
+    } > "${OUTPUT_FILE}"
+}
+
+write_json() {
+    local data="$1"
+    IFS="|" read -r hostname ip os_name kernel cpu_count date_now <<< "$data"
+
+    cat > "${OUTPUT_FILE}" << EOF
 [
   {
     "hostname": "${hostname}",
@@ -134,11 +87,37 @@ EOF
   }
 ]
 EOF
-    fi
+}
 
-    log_success "Inventory collected from localhost"
+main() {
+    print_banner
+
+    log_info "Environment: ${ENV}"
+    log_info "Output format: ${OUTPUT_FORMAT}"
+
+    ensure_dir "${REPORTS_DIR}"
+
+    log_info "Starting server inventory collection..."
+    log_info "Output file: ${OUTPUT_FILE}"
+
+    local data
+    data=$(collect_data)
+
+    case "${OUTPUT_FORMAT}" in
+        csv)
+            write_csv "$data"
+            ;;
+        json)
+            write_json "$data"
+            ;;
+        *)
+            log_error "Unsupported format: ${OUTPUT_FORMAT}"
+            exit 1
+            ;;
+    esac
+
+    log_success "Inventory collected successfully"
     log_success "Report saved to: ${OUTPUT_FILE}"
-    log_success "✅ Script completed successfully!"
 }
 
 main "$@"
