@@ -69,3 +69,4 @@ env/
 # Test artifacts
 test-results/
 coverage/
+reports/
