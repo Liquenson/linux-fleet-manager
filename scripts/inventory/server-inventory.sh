@@ -1,155 +1,135 @@
 #!/usr/bin/env bash
 ################################################################################
 # Script: server-inventory.sh
-# Description: Collect comprehensive inventory from Linux servers
+# Description: Collect comprehensive inventory from Linux servers via SSH
 # Author: Liquenson Ruben Alexis
-# Version: 2.1.0
+# Version: 3.0.0
 ################################################################################
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly SCRIPT_DIR
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
-readonly PROJECT_ROOT
-readonly VERSION="2.1.0"
+readonly SCRIPT_DIR PROJECT_ROOT
+
+readonly VERSION="3.0.0"
 
 # Load libraries
-if [[ -f "${PROJECT_ROOT}/lib/common.sh" ]]; then
-    source "${PROJECT_ROOT}/lib/common.sh"
-else
-    echo "ERROR: Failed to load common.sh library" >&2
-    exit 1
-fi
+source "${PROJECT_ROOT}/lib/common.sh"
 
-if [[ -f "${PROJECT_ROOT}/lib/logger.sh" ]]; then
-    source "${PROJECT_ROOT}/lib/logger.sh"
-fi
+[[ -f "${PROJECT_ROOT}/lib/logger.sh" ]] && source "${PROJECT_ROOT}/lib/logger.sh"
 
 # =============================================================================
 # DEFAULTS
 # =============================================================================
 ENV="default"
 OUTPUT_FORMAT="csv"
+SERVERS=("server")   # <-- aquí puedes añadir más servidores
+
 readonly REPORTS_DIR="${PROJECT_ROOT}/reports"
 
 # =============================================================================
 # USAGE
 # =============================================================================
 usage() {
-    cat << EOF
+cat << EOF
 Usage: $(basename "$0") [OPTIONS]
-
-Collect hardware and OS inventory from Linux servers.
 
 Options:
   --env ENV         Target environment (default: default)
   --format FORMAT   Output format: csv or json (default: csv)
-  --help            Show this help message and exit
-  --version         Show version and exit
+  --help            Show help
+  --version         Show version
 
 Examples:
   $(basename "$0") --format csv
-  $(basename "$0") --format json --env production
+  $(basename "$0") --format json --env prod
 EOF
 }
 
 # =============================================================================
-# ARGUMENT PARSING
+# ARGUMENTS
 # =============================================================================
 parse_args() {
     while [[ "$#" -gt 0 ]]; do
         case "$1" in
-            --help|-h)
-                usage
-                exit 0
-                ;;
-            --version|-v)
-                echo "server-inventory.sh version ${VERSION}"
-                exit 0
-                ;;
-            --format)
-                [[ -z "${2:-}" ]] && { log_error "--format requires a value (csv|json)"; exit 1; }
-                OUTPUT_FORMAT="$2"
-                shift
-                ;;
-            --env)
-                [[ -z "${2:-}" ]] && { log_error "--env requires a value"; exit 1; }
-                ENV="$2"
-                shift
-                ;;
-            *)
-                log_error "Unknown option: $1"
-                usage
-                exit 1
-                ;;
+            --help|-h) usage; exit 0 ;;
+            --version|-v) echo "Version ${VERSION}"; exit 0 ;;
+            --format) OUTPUT_FORMAT="$2"; shift ;;
+            --env) ENV="$2"; shift ;;
+            *) log_error "Unknown option: $1"; exit 1 ;;
         esac
         shift
     done
 }
 
 # =============================================================================
-# BANNER
+# SSH EXECUTION
 # =============================================================================
-print_banner() {
-    cat << 'EOF'
-╔══════════════════════════════════════════════════════════════════╗
-║        LINUX FLEET MANAGER - SERVER INVENTORY                   ║
-║                                                                  ║
-║  Automated server discovery and inventory collection            ║
-╚══════════════════════════════════════════════════════════════════╝
-EOF
+run_ssh() {
+    local host="$1"
+    local cmd="$2"
+
+    ssh -o BatchMode=yes "$host" "$cmd" 2>/dev/null
 }
 
 # =============================================================================
 # DATA COLLECTION
 # =============================================================================
 collect_data() {
-    local hostname ip os_name kernel cpu_count ram_gb disk_gb date_now
+    local host="$1"
 
-    hostname=$(hostname)
-    ip=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "127.0.0.1")
-    os_name=$(uname -s)
-    kernel=$(uname -r)
-    cpu_count=$(nproc 2>/dev/null || echo "${NUMBER_OF_PROCESSORS:-N/A}")
-    ram_gb=$(awk '/MemTotal/ {printf "%.1f", $2/1024/1024}' /proc/meminfo 2>/dev/null || echo "N/A")
-    disk_gb=$(df -BG / 2>/dev/null | awk 'NR==2 {print $2}' | tr -d 'G' || echo "N/A")
+    log_info "Collecting data from: $host"
+
+    hostname=$(run_ssh "$host" "hostname")
+    ip=$(run_ssh "$host" "hostname -I | awk '{print \$1}'")
+    os_name=$(run_ssh "$host" "uname -s")
+    kernel=$(run_ssh "$host" "uname -r")
+    cpu_count=$(run_ssh "$host" "nproc")
+    ram=$(run_ssh "$host" "free -m | awk '/Mem:/ {print \$2\"MB\"}'")
+    disk=$(run_ssh "$host" "df -h / | awk 'NR==2 {print \$4}'")
     date_now=$(date +%Y-%m-%d)
 
-    echo "$hostname|$ip|$os_name|$kernel|$cpu_count|${ram_gb}GB|${disk_gb}GB|$date_now"
+    echo "$hostname|$ip|$os_name|$kernel|$cpu_count|$ram|$disk|$date_now"
 }
 
 # =============================================================================
-# OUTPUT WRITERS
+# OUTPUT
 # =============================================================================
 write_csv() {
     local data="$1"
-    local output_file="$2"
+    local file="$2"
+
     {
-        echo "Hostname,IP Address,OS Name,Kernel,CPU Count,RAM,Disk,Last Update"
-        echo "${data//|/,}"
-    } > "${output_file}"
-    log_success "CSV report saved to: ${output_file}"
+        echo "Hostname,IP,OS,Kernel,CPU,RAM,Disk,Date"
+        echo "$data"
+    } | tr "|" "," > "$file"
+
+    log_success "CSV saved: $file"
 }
 
 write_json() {
     local data="$1"
-    local output_file="$2"
-    IFS="|" read -r hostname ip os_name kernel cpu_count ram disk date_now <<< "$data"
-    cat > "${output_file}" << EOF
+    local file="$2"
+
+    IFS="|" read -r hostname ip os kernel cpu ram disk date <<< "$data"
+
+    cat > "$file" << EOF
 [
   {
-    "hostname": "${hostname}",
-    "ip_address": "${ip}",
-    "os_name": "${os_name}",
-    "kernel": "${kernel}",
-    "cpu_count": "${cpu_count}",
-    "ram": "${ram}",
-    "disk": "${disk}",
-    "last_update": "${date_now}"
+    "hostname": "$hostname",
+    "ip": "$ip",
+    "os": "$os",
+    "kernel": "$kernel",
+    "cpu": "$cpu",
+    "ram": "$ram",
+    "disk": "$disk",
+    "date": "$date"
   }
 ]
 EOF
-    log_success "JSON report saved to: ${output_file}"
+
+    log_success "JSON saved: $file"
 }
 
 # =============================================================================
@@ -158,32 +138,27 @@ EOF
 main() {
     parse_args "$@"
 
-    # Validate format
-    if [[ "${OUTPUT_FORMAT}" != "csv" && "${OUTPUT_FORMAT}" != "json" ]]; then
-        log_error "Unsupported format: ${OUTPUT_FORMAT}. Use csv or json."
-        exit 1
-    fi
+    ensure_dir "$REPORTS_DIR"
+
+    timestamp=$(date +%Y%m%d_%H%M%S)
+    output_file="${REPORTS_DIR}/inventory_${timestamp}.${OUTPUT_FORMAT}"
 
     print_banner
-    log_info "Environment : ${ENV}"
-    log_info "Output format: ${OUTPUT_FORMAT}"
 
-    ensure_dir "${REPORTS_DIR}"
+    all_data=""
 
-    local timestamp output_file data
-    timestamp="$(date +%Y%m%d_%H%M%S)"
-    output_file="${REPORTS_DIR}/server-inventory_${timestamp}.${OUTPUT_FORMAT}"
+    for host in "${SERVERS[@]}"; do
+        data=$(collect_data "$host")
+        all_data+="$data"$'\n'
+    done
 
-    log_info "Starting server inventory collection..."
-
-    data=$(collect_data)
-
-    case "${OUTPUT_FORMAT}" in
-        csv)  write_csv  "$data" "$output_file" ;;
-        json) write_json "$data" "$output_file" ;;
+    case "$OUTPUT_FORMAT" in
+        csv) write_csv "$all_data" "$output_file" ;;
+        json) write_json "$all_data" "$output_file" ;;
+        *) log_error "Invalid format"; exit 1 ;;
     esac
 
-    log_success "Inventory completed successfully"
+    log_success "Inventory completed"
 }
 
 main "$@"
