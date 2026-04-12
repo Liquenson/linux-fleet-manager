@@ -3,7 +3,7 @@
 # Script: server-inventory.sh
 # Description: Collect comprehensive inventory from Linux servers via SSH
 # Author: Liquenson Ruben Alexis
-# Version: 3.0.0
+# Version: 3.0.1
 ################################################################################
 
 set -euo pipefail
@@ -12,10 +12,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 readonly SCRIPT_DIR PROJECT_ROOT
 
-readonly VERSION="3.0.0"
+readonly VERSION="3.0.1"
 
 # Load libraries
-source "${PROJECT_ROOT}/lib/common.sh"
+if [[ -f "${PROJECT_ROOT}/lib/common.sh" ]]; then
+    source "${PROJECT_ROOT}/lib/common.sh"
+else
+    echo "ERROR: common.sh not found" >&2
+    exit 1
+fi
 
 [[ -f "${PROJECT_ROOT}/lib/logger.sh" ]] && source "${PROJECT_ROOT}/lib/logger.sh"
 
@@ -24,9 +29,22 @@ source "${PROJECT_ROOT}/lib/common.sh"
 # =============================================================================
 ENV="default"
 OUTPUT_FORMAT="csv"
-SERVERS=("server")   # <-- aquí puedes añadir más servidores
+SERVERS=("server")   # Añade más servidores aquí
 
 readonly REPORTS_DIR="${PROJECT_ROOT}/reports"
+
+# =============================================================================
+# BANNER (FIX CI ERROR)
+# =============================================================================
+print_banner() {
+cat << 'EOF'
+╔══════════════════════════════════════════════════════════════════╗
+║        LINUX FLEET MANAGER - SERVER INVENTORY                   ║
+║                                                                  ║
+║  Automated server discovery and inventory collection            ║
+╚══════════════════════════════════════════════════════════════════╝
+EOF
+}
 
 # =============================================================================
 # USAGE
@@ -57,7 +75,7 @@ parse_args() {
             --version|-v) echo "Version ${VERSION}"; exit 0 ;;
             --format) OUTPUT_FORMAT="$2"; shift ;;
             --env) ENV="$2"; shift ;;
-            *) log_error "Unknown option: $1"; exit 1 ;;
+            *) echo "Unknown option: $1"; exit 1 ;;
         esac
         shift
     done
@@ -79,7 +97,7 @@ run_ssh() {
 collect_data() {
     local host="$1"
 
-    log_info "Collecting data from: $host"
+    echo "[INFO] Collecting data from: $host"
 
     hostname=$(run_ssh "$host" "hostname")
     ip=$(run_ssh "$host" "hostname -I | awk '{print \$1}'")
@@ -105,7 +123,7 @@ write_csv() {
         echo "$data"
     } | tr "|" "," > "$file"
 
-    log_success "CSV saved: $file"
+    echo "[SUCCESS] CSV saved: $file"
 }
 
 write_json() {
@@ -129,7 +147,7 @@ write_json() {
 ]
 EOF
 
-    log_success "JSON saved: $file"
+    echo "[SUCCESS] JSON saved: $file"
 }
 
 # =============================================================================
@@ -138,12 +156,12 @@ EOF
 main() {
     parse_args "$@"
 
-    ensure_dir "$REPORTS_DIR"
+    print_banner
+
+    mkdir -p "$REPORTS_DIR"
 
     timestamp=$(date +%Y%m%d_%H%M%S)
     output_file="${REPORTS_DIR}/inventory_${timestamp}.${OUTPUT_FORMAT}"
-
-    print_banner
 
     all_data=""
 
@@ -155,10 +173,10 @@ main() {
     case "$OUTPUT_FORMAT" in
         csv) write_csv "$all_data" "$output_file" ;;
         json) write_json "$all_data" "$output_file" ;;
-        *) log_error "Invalid format"; exit 1 ;;
+        *) echo "Invalid format"; exit 1 ;;
     esac
 
-    log_success "Inventory completed"
+    echo "[SUCCESS] Inventory completed"
 }
 
 main "$@"
