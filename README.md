@@ -166,7 +166,7 @@ MIT License - Ver [LICENSE](LICENSE) para más detalles.
 
 ## 🔗 Proyectos Relacionados
 
-- [aws-terraform-devops-lab](https://github.com/Liquenson/aws-terraform-devops-lab) - Infraestructura AWS con Terraform
+- [aws-terraform-devops](https://github.com/Liquenson/aws-terraform-devops) - Infraestructura AWS con Terraform
 
 ---
 
